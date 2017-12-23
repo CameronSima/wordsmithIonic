@@ -1,0 +1,45 @@
+<ion-header>
+
+  <ion-navbar>
+    <ion-title>{{ 'LIST_MASTER_TITLE' | translate }}</ion-title>
+  </ion-navbar>
+
+</ion-header>
+
+<ion-content>
+    <h3 style="float:right; margin-right: 10px">:52</h3>
+    <ion-item-group class="words">
+        <ion-item>Penile</ion-item>
+        <ion-item>Angola</ion-item>
+        <ion-item>Argentina</ion-item>
+        <ion-item>Argentina</ion-item>
+        <ion-item>Argentina</ion-item>
+        <ion-item>Argentina</ion-item>
+        <ion-item>Argentina</ion-item>
+      </ion-item-group>
+
+      <ion-item-group class="powerup">
+          <button ion-button icon-right>
+              Right Icon
+              <ion-icon name="home"></ion-icon>
+            </button>
+            <button ion-button icon-right>
+                Right Icon
+                <ion-icon name="home"></ion-icon>
+              </button>
+        </ion-item-group>
+
+      <div class="word-builder">
+        <h1>Defenestrate</h1>
+      </div>
+  
+</ion-content>
+
+  <!-- letter buttons -->
+  <ion-grid style="padding: 5px; position: absolute; bottom: 0px; width: 100%">
+      <ion-row *ngFor="let row of rowsAndCols">
+        <ion-col *ngFor="let letter of row">
+          <button ion-button full> {{ letter.value }} </button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
