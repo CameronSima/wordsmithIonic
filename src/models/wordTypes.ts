@@ -29,30 +29,30 @@ export class Alphabet {
 
     // map points to weights
     private build() {
-        let index = 0;
         for (const item in Points) {
-                console.log(item)
-                index++;
-                let letter = this.buildLetter(item, index);
+                let letter = this.buildLetter(item);
                 this.values.push(letter);
-
         }
-        console.log(this.values)
     }
 
     public isVowel(letter: Letter): boolean {
+        let isVowel = false;
+
         ['A', 'E', 'I', 'O', 'U'].forEach((vowel) => {
             if (letter.value === vowel) {
-                return true;
+                isVowel = true;
             }
         });
-        return false;
+        return isVowel;
     }
 
-    private buildLetter(value: string, index: number): Letter {
+    private buildLetter(value: string): Letter {
+
+        // Leave index null at this point; ids will be assigned
+        // when letterset is built.
         return {
             value: value,
-            id: index,
+            id: null,
             points: Points[value], 
             weight: Weights[value]
         }
@@ -73,12 +73,17 @@ export class Word {
 
     constructor() {
         this.letters = [];
-
     }
 
     // TODO: check word against dictionary
     public isValid(): boolean {
         return true;
+    }
+
+    public toString() {
+        return this.letters.reduce((acc, curr) => {
+            return acc + curr.value
+        }, "")
     }
 
     public addLetter(letter: Letter): boolean {
@@ -91,11 +96,13 @@ export class Word {
     }
 
     private containsLetter(letter: Letter): boolean {
+        let alreadyUsed = false;
+
         this.letters.forEach((item: Letter) => {
             if (letter.id === item.id) {
-                return true;
+                alreadyUsed = true;
             }
         });
-        return false;
+        return alreadyUsed;
     }
 }

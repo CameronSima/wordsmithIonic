@@ -30,16 +30,18 @@
         </ion-item-group>
 
       <div class="word-builder">
-        <h1>Defenestrate</h1>
+        <h1>{{ word.toString() }}</h1>
       </div>
   
-</ion-content>
+
 
   <!-- letter buttons -->
   <ion-grid style="padding: 5px; position: absolute; bottom: 0px; width: 100%">
       <ion-row *ngFor="let row of rowsAndCols">
         <ion-col *ngFor="let letter of row">
-          <button ion-button full> {{ letter.value }} </button>
+          <button ion-button full ng-click="buildWord(item)" > {{ letter.value }} </button>
         </ion-col>
       </ion-row>
     </ion-grid>
+
+  </ion-content>

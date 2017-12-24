@@ -23,7 +23,17 @@ export class ListMasterPage {
     this.letters = game.getLetterSet();
     this.rowLength = 4;
     this.rowsAndCols = this.getRowsAndCols();
-    this.word = null;
+    this.word = new Word();
+  }
+
+  buildWord(letter: Letter) {
+  
+
+    console.log("HI")
+    console.log(letter)
+
+    this.word.addLetter(letter);
+
   }
 
   getRowsAndCols(): any {

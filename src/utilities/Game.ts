@@ -23,53 +23,46 @@ export default class Game {
         return this.letterSet;
     }
 
-
     private getLetterWeightsTotal() : number {
 
-        console.log(this.alphabet.values)
-    
         let total = 0;
         for (let letter of this.alphabet.values) {
-            console.log(total)
             total += letter.weight
         }
-        console.log(total)
         return total;
     }
 
     private generateLetterSet(): Letter[] {
-        const letters = this.getLetters();
-        console.log(letters)
-        const vowelCount = this.getVowelCount(letters);
-        
-        if (vowelCount < this.User['gameSettings'].vowels) {
-            this.generateLetterSet();
-        } else {
-            return letters;
+        let letters = null;
+        let vowelCount = 0;
+
+        while (vowelCount < this.User['gameSettings'].vowels) {
+            letters = this.getLetters();
+            vowelCount = this.getVowelCount(letters);
         }
+        return letters;
     }
 
     getVowelCount(letters: Letter[]): number {
         let count = 0;
 
-        console.log(letters)
-
         for (let letter of letters) {
-            console.log(letter)
             if (this.alphabet.isVowel(letter)) {
-                count++;
+                count += 1;
             }
         }
         return count;
     }
 
+    // Return letterset for a new game, and assign letter ids
     private getLetters(): Letter[] {
         let letters = [];
         let numLetters = this.User['gameSettings'].numLetters;
 
         for (let i = 0; i < numLetters; i++) {
-            console.log(this.getRandomLetter())
-            letters.push(this.getRandomLetter());
+            let letter = this.getRandomLetter();
+            letter.id = i;
+            letters.push(letter);
         }
         return letters;
     }
@@ -79,7 +72,6 @@ export default class Game {
         let rand = this.getRandomFloat(0, this.letterWeightsTotal, 4);
         
         for (let letter of this.alphabet.values) {
-            
             if (upto + letter.weight > rand) {
                 return letter;
             }
