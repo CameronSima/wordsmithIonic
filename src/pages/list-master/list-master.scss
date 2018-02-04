@@ -1,8 +1,14 @@
 page-list-master {
 
 
+    .scroll-bar-indicator
+{
+	display: none;
+}
+
     .words {
-        width: 50%
+        width: 50%;
+        height: 50%;
     }
 
     .word-builder {
@@ -16,5 +22,13 @@ page-list-master {
     .powerup {
         width: 50%;
         float: right;
+    }
+
+    .letterText {
+        font-size: 22px;
+    }
+
+    .selected-true {
+        opacity: 0.3;
     }
 }
