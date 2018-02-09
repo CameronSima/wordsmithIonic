@@ -95,6 +95,7 @@ export interface Letter {
     points: number,
     weight?: number,
     selected: boolean,
+    highlighted?: boolean
 }
 
 export class Word {

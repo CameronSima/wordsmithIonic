@@ -13,8 +13,7 @@
 </ion-header>
 
 <ion-content padding>
-  <h1>{{ getHeadingMessage() }}</h1>
-
+  <h2>{{ getHeadingMessage() }}</h2>
   <ion-grid>
     <ion-row>
       <ion-col>Top Word:</ion-col>
@@ -37,8 +36,16 @@
       <ion-col>12,900</ion-col>
     </ion-row>
     <ion-row>
-    <ion-col>Total Score:</ion-col>
-    <ion-col>{{ gameResult.finalScore }}</ion-col>
+      <ion-col>Total Score:</ion-col>
+      <ion-col>{{ gameResult.finalScore }}</ion-col>
     </ion-row>
   </ion-grid>
+  <ion-item>
+    <div>
+      Progress to next level: 123,980 / 200,000
+    </div>
+    <br />
+    <progress value="22" max="100"></progress>
+  </ion-item>
+  <button ion-button full primary (click)="newGame()">New Game</button>
 </ion-content>

@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
-import { NavParams, IonicPage, ViewController } from 'ionic-angular';
+import { NavParams, IonicPage, ViewController, NavController } from 'ionic-angular';
 import { GameResult, Game } from '../../utilities/Game';
-import { Word } from '../../models/wordTypes';
-import { Bonus } from '../../models/Bonus';
+// import { Bonus } from '../../models/Bonus';
+import { MainPage, WelcomePage,  } from '../pages';
 
 
 // An after-game report.
@@ -15,8 +15,8 @@ export class GameReportPage {
     gameResult: GameResult;
     game: Game;
 
-    constructor(params: NavParams, public viewCtrl: ViewController) {
-        this.gameResult = params.get('gameReport');
+    constructor(params: NavParams, public viewCtrl: ViewController, public navCtrl: NavController) {
+        this.gameResult = params.get('gameResult');
         this.game = params.get('game');
       }
 
@@ -30,7 +30,6 @@ export class GameReportPage {
 
       getHighestWordString(): string {
         let word = this.gameResult.topWord;
-
         if (word) {
           return word.toString() + " - "+ word.getScore() + " points";
         } else {
@@ -38,7 +37,13 @@ export class GameReportPage {
         }
       }
 
+      newGame() {
+        this.viewCtrl.dismiss({ type: 'new game' });
+        //this.navCtrl.push(MainPage);
+      }
+
       dismiss() {
-        this.viewCtrl.dismiss();
+        this.viewCtrl.dismiss({ type: 'welcome page' });
+        //this.navCtrl.push(WelcomePage);
       }
 }

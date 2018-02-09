@@ -1,12 +1,24 @@
 import { Game } from '../utilities/Game';
 import { Word } from './wordTypes';
-import Levels from '../assets/LevelConfig';
+import LevelConfigs from '../assets/LevelConfig';
+import User from '../models/User';
+
+interface LevelConfig {
+    pointsRequired: number,
+    bonuses: BonusConfig[]
+}
 
 interface BonusConfig {
     name: string,
     number: number,
     time?: number,
-    level: number
+}
+
+export enum BonusTypes {
+    WORD_HINT = "WordHintBonus",
+    TIME = "TimeBonus",
+    EXPAND_WORD_LIST = "ExpandWordListBonus",
+    WILD_CARD_VOWEL = "WildCardVowelBonus"
 }
 
 export class BonusController {
@@ -14,9 +26,11 @@ export class BonusController {
     private bonuses: Bonus[];
     private game: Game;
     private userLevel: number;
+    private User: User;
 
     public constructor(game: Game) {
         this.game = game;
+        this.User = game.User;
         this.userLevel = game.User.gameSettings.level;
         this.bonuses = [];
         this.populate();
@@ -31,10 +45,8 @@ export class BonusController {
         this.getBonus(bonusName).apply();
     }
 
-    public 
-
     private populate(): void {
-        let bonusConfigs: BonusConfig[] = Levels[this.userLevel].bonuses;
+        let bonusConfigs: BonusConfig[] = this.getUserLevel().bonuses;
 
         bonusConfigs.forEach((config: BonusConfig) => {
             let bonus: Bonus = this.buildBonus(config);
@@ -44,15 +56,28 @@ export class BonusController {
         });
     }
 
+    private getUserLevel(): LevelConfig {
+        let userPoints: number = this.User.gameSettings.points;
+        let userConfig: LevelConfig;
+
+        for (let level in LevelConfigs) {
+            if (userPoints >= LevelConfigs[level].pointsRequired) {
+                userConfig = LevelConfigs[level];
+                break;
+            }
+        }
+        return userConfig;
+    }
+
     private buildBonus(config: BonusConfig): Bonus {
 
         switch(config.name) {
 
-            case "WordHintBonus" : {
+            case BonusTypes.WORD_HINT : {
                 return new WordHintBonus(this.game, config);
             }
 
-            case "TimeBonus" : {
+            case BonusTypes.TIME : {
                 return new TimeBonus(this.game, config);
             }
 

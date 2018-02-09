@@ -4,7 +4,8 @@ export default interface User {
         vowels: number, 
         level: number,
         numWords: number,
-        gameTime: number
+        gameTime: number,
+        points: number
     },
     highScore?: number
 };

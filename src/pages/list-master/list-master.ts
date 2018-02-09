@@ -5,7 +5,7 @@ import { ToastController, LoadingController, FabContainer } from 'ionic-angular'
 // import { Item } from '../../models/item';
 // import { Items } from '../../providers/providers';
 
-import { Game } from '../../utilities/Game';
+import { Game, GameResult } from '../../utilities/Game';
 import { BonusController } from '../../models/Bonus';
 import { Word, Letter, Alphabet } from '../../models/wordTypes';
 import { Http } from '@angular/http';
@@ -17,6 +17,7 @@ import Dictionary from '../../utilities/Dictionary';
   templateUrl: 'list-master.html'
 })
 export class ListMasterPage {
+  dictionary: Dictionary;
   bonusController: BonusController;
   alphabet: Alphabet;
   rowLength: number;
@@ -29,6 +30,7 @@ export class ListMasterPage {
     public navCtrl: NavController,
     public game: Game,
     public modalCtrl: ModalController) {
+  
 
     this.alphabet = Alphabet.Instance;
     this.rowLength = 4;
@@ -36,27 +38,44 @@ export class ListMasterPage {
   }
 
   private async startGame() {
-    let dictionary = new Dictionary(this.http);
-    let result = await dictionary.buildDictionary();
+    this.startLoader()
+    .then(async () => {
 
-    console.log(result);
+    
 
-    this.game.addAllPossibleWords(dictionary);
-    this.bonusController = new BonusController(this.game);
-    this.game.setControllers(this.bonusController, this.modalCtrl);
+    if (!this.dictionary) {
+      this.dictionary = new Dictionary(this.http);
+      let result = await this.dictionary.buildDictionary();
+      console.log(result);
+    };
 
-    // destroy dictionary as it's no longer needed.
-    dictionary = null;
-
+    this.game.init(this.dictionary, this.modalCtrl);
     this.rowsAndCols = this.getRowsAndCols(this.game.getLetterSet().letters);
+
     this.loading.dismiss();
-    this.game.onGameEnd = this.endGame;
-    this.game.startTimer();
+    this.game.start((gameResult: GameResult) => {
+      this.endGame(gameResult);
+    });
+  })
   }
 
-  endGame() {
-    console.log(this.modalCtrl)
-    let endingModal = this.modalCtrl.create('GameReportPage', { game: this.game });
+  // TODO: Load dict from db, return true if exists
+  loadDictionaryFromDb(): boolean {
+    return false;
+  }
+
+  endGame(result: GameResult) {
+    let endingModal = this.modalCtrl.create('GameReportPage', { gameResult: result, game: this.game });
+    endingModal.onDidDismiss(response => {
+    
+      console.log(response)
+      if (response.type === 'new game') {
+        this.startGame();
+      } else {
+        
+        // TODO: Push to other page
+      }
+    });
     endingModal.present();
   }
 
@@ -94,6 +113,8 @@ export class ListMasterPage {
 
   definitionToast(word: Word) {
     let definitions: Array<string> = word.getDefinitions();
+
+    // Get random definition
     let definition: string = definitions[Math.floor(Math.random() * definitions.length)]
 
     let toast = this.toastCtrl.create({
@@ -110,11 +131,11 @@ export class ListMasterPage {
     fab.close();
   }
 
-  startLoader() {
+  startLoader(): Promise<void> {
     this.loading = this.loadingController.create({
       content: "Loading..."
     });
-    this.loading.present();
+    return this.loading.present();
   }
 
   getRowsAndCols(letters: Letter[]): any {
@@ -143,9 +164,14 @@ export class ListMasterPage {
   }
 
   ionViewDidLoad() {
-    this.startGame();
-    this.startLoader();
+    // this.startGame();
+    
     //this.endGame()
+  }
+
+  ionViewDidEnter() {
+
+    this.startGame();
   }
 
 }

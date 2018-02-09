@@ -11,3 +11,7 @@ export const Tab2Root = 'SearchPage';
 export const Tab3Root = 'SettingsPage';
 
 export const GameReportPage = 'GameReportPage';
+export const ContentPage = 'ContentPage';
+export const TutorialPage = 'TutorialPage';
+export const MenuPage = 'MenuPage';
+export const WelcomePage = 'WelcomePage';

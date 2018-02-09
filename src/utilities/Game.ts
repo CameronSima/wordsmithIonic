@@ -28,23 +28,52 @@ export class Game {
     onGameEnd: Function;
 
     constructor() {
-
+        
         // TODO: Inject user from storage
-        this.User = { highScore: 10000, gameSettings: { numLetters: 10, vowels: 2, level: 2, numWords: 8, gameTime: 1 } };
+        this.User = { highScore: 10000, gameSettings: { numLetters: 10, vowels: 2, level: 2, numWords: 8, gameTime: 1, points: 1000000 } };
+        this.setDefaults();
+    }
+
+    init(dictionary: Dictionary, modalCtrl: ModalController) {
+        this.modalCtrl = modalCtrl;
         this.letterSet = new LetterSet(this.User['gameSettings'].numLetters, this.User['gameSettings'].vowels);
+        
+        this.addAllPossibleWords(dictionary, () => {
+            this.bonusCtrl = new BonusController(this);
+        });
+
+        console.log("Game Initialized");
+    }
+
+    public start(callback: Function) {
+        this.setDefaults();
+        this.startTimer(() => {
+            let result: GameResult = this.getGameResult();
+            callback(result);
+        })
+    }
+
+
+    public startTimer(callback: Function): void {
+        let timer = setInterval(() => {
+            if (this.timeLeft === 0) {
+                //this.endGame();
+                clearInterval(timer);
+                callback();
+            }
+            console.log(this.timeLeft)
+            this.timeLeft--;
+        }, 1000)
+    }
+
+    private setDefaults(): void {
+        this.timeLeft = this.User.gameSettings.gameTime;
         this.wordList = [];
         this.allPossibleWords = {};
-        this.timeLeft = this.User.gameSettings.gameTime;
         this.currentWord = new Word();
     }
 
-    // Set controllers from the UI 
-    public setControllers(bonusCtrl: BonusController, modalCtrl: ModalController) {
-        this.modalCtrl = modalCtrl;
-        this.bonusCtrl = bonusCtrl;
-    }
-
-    public addAllPossibleWords(dictionary: Dictionary): void {
+    public addAllPossibleWords(dictionary: Dictionary, callback: Function): void {
         let entries = dictionary.entries;
 
         for (let category in entries) {
@@ -56,6 +85,7 @@ export class Game {
                 }
             }
         }
+        callback();
     }
 
     public getAllPossibleWords(): Object {
@@ -210,20 +240,9 @@ export class Game {
         }, null);
     }
 
-
-    public startTimer(): void {
-        let timer = setInterval(() => {
-            if (this.timeLeft === 0) {
-                this.endGame();
-                clearInterval(timer);
-            }
-            this.timeLeft--;
-        }, 1000)
-    }
-
-    public endGame() {
-        let result: GameResult = this.getGameResult();
-        let endingModal = this.modalCtrl.create('GameReportPage', { gameReport: result, game: this });
-        endingModal.present();
-    }
+    // public endGame() {
+    //     let result: GameResult = this.getGameResult();
+    //     let endingModal = this.modalCtrl.create('GameReportPage', { gameReport: result, game: this });
+    //     endingModal.present();
+    // }
 }
