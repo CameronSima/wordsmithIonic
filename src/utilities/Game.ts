@@ -4,11 +4,12 @@ import { Word, Letter } from '../models/wordTypes';
 import User from '../models/User';
 import Dictionary from './Dictionary'
 import LetterSet from './LetterSet';
-import { Bonus, BonusController } from '../models/Bonus';
-import { ModalController } from 'ionic-angular/components/modal/modal-controller';
+import { Bonus } from '../models/Bonus/Bonus';
+import { BonusController } from '../models/Bonus/BonusController';
 
 export interface GameResult {
     finalScore: number,
+    gameScore: number,
     bonusesUsed: Bonus[],
     timeBonus: number,
     unusedBonusBonus: number,
@@ -17,8 +18,10 @@ export interface GameResult {
 
 @Injectable()
 export class Game {
+
+    // A reference to list-master.ts page to pass to BonusCtrl to display bonus info.
+    UiCtrl: any;
     bonusCtrl: BonusController;
-    modalCtrl: ModalController;
     User: User;
     letterSet: LetterSet;
     wordList: Word[];
@@ -30,25 +33,24 @@ export class Game {
     constructor() {
         
         // TODO: Inject user from storage
-        this.User = { highScore: 10000, gameSettings: { numLetters: 10, vowels: 2, level: 2, numWords: 8, gameTime: 1, points: 1000000 } };
+        this.User = { highScore: 10000, gameSettings: { numLetters: 10, vowels: 2, level: 2, numWords: 8, gameTime: 30, points: 1100000 } };
         this.setDefaults();
     }
 
-    init(dictionary: Dictionary, modalCtrl: ModalController) {
-        this.modalCtrl = modalCtrl;
+    init(dictionary: Dictionary, UiContrl: any) {
         this.letterSet = new LetterSet(this.User['gameSettings'].numLetters, this.User['gameSettings'].vowels);
-        
-        this.addAllPossibleWords(dictionary, () => {
-            this.bonusCtrl = new BonusController(this);
-        });
+        this.UiCtrl = UiContrl;
+        this.addAllPossibleWords(dictionary);
+        this.bonusCtrl = new BonusController(this);
 
         console.log("Game Initialized");
     }
 
     public start(callback: Function) {
-        this.setDefaults();
+        //this.setDefaults();
         this.startTimer(() => {
             let result: GameResult = this.getGameResult();
+            this.setDefaults();
             callback(result);
         })
     }
@@ -61,7 +63,6 @@ export class Game {
                 clearInterval(timer);
                 callback();
             }
-            console.log(this.timeLeft)
             this.timeLeft--;
         }, 1000)
     }
@@ -73,7 +74,7 @@ export class Game {
         this.currentWord = new Word();
     }
 
-    public addAllPossibleWords(dictionary: Dictionary, callback: Function): void {
+    public addAllPossibleWords(dictionary: Dictionary): void {
         let entries = dictionary.entries;
 
         for (let category in entries) {
@@ -85,14 +86,16 @@ export class Game {
                 }
             }
         }
-        callback();
+
+        console.log("ALL POSIBLE")
+        console.log(this.allPossibleWords)
     }
 
     public getAllPossibleWords(): Object {
         return this.allPossibleWords;
     }
 
-    buildWord(letter: Letter): boolean {
+    public buildWord(letter: Letter): boolean {
         if (this.currentWord.addLetter(letter)) {
             return true;
         } else {
@@ -105,7 +108,6 @@ export class Game {
         let result: boolean = true;
         let letts: string[] = word.split("").map(lett => lett.toUpperCase())
         let availableLetts: string[] = this.letterSet.letters.map(letter => letter.value)
-
         letts.forEach((lett) => {
             let index: number = availableLetts.indexOf(lett);
 
@@ -114,11 +116,11 @@ export class Game {
             } else {
                 result = false;
             }
-        })
+        });
         return result;
     }
 
-    getScore(): number {
+    public getScore(): number {
         let score: number = 0;
 
         this.wordList.forEach((word) => {
@@ -127,25 +129,25 @@ export class Game {
         return score;
     }
 
-    getLetterSet(): LetterSet {
+    public getLetterSet(): LetterSet {
         return this.letterSet;
     }
 
-    setLetterSet(letterSet: LetterSet): void {
+    public setLetterSet(letterSet: LetterSet): void {
         this.letterSet = letterSet;
     }
 
-    getWordList(): Word[] {
+    public getWordList(): Word[] {
         return this.wordList;
     }
 
-    submitWord(): boolean {
+    public submitWord(): boolean {
         let added: boolean;
         let word = this.currentWord;
-        this.currentWord = new Word();
-        word.unselectedAll();
 
         if (word.getLetters().length > 2 && !this.existsInWordList(word) && this.addedToList(word)) {
+
+            this.bonusCtrl.checkExecution();
 
             // Limit wordlist to number of allowed words, and also sort for display in ui
             this.wordList = this.sorted(this.wordList).slice(0, this.User['gameSettings'].numWords);
@@ -153,10 +155,18 @@ export class Game {
         } else {
             added = false;
         }
+        this.resetCurrentWord();
         return added;
     }
 
+    private resetCurrentWord(): void {
+        this.currentWord.unselectedAll();
+        this.currentWord = new Word();
+    }
+
+    // add to work list and return true if successfully added
     private addedToList(word: Word): boolean {
+
         let definitions: Array<string> = this.allPossibleWords[word.toString()];
         if (definitions !== undefined) {
             word.setDefinitions(definitions);
@@ -165,6 +175,7 @@ export class Game {
         } else {
             return false;
         }
+  
     }
 
     sorted(wordList: Word[]): Word[] {
@@ -179,8 +190,7 @@ export class Game {
         })
     }
 
-    private existsInWordList(word: Word) {
-
+    public existsInWordList(word: Word) {
         let alreadyAdded: boolean = false;
 
         this.wordList.forEach((w) => {
@@ -191,15 +201,17 @@ export class Game {
         return alreadyAdded;
     }
 
-    getGameResult(): GameResult {
-        let finalScore = this.getScore();
-        let bonusesUsed: Bonus[] = this.getBonusesUsed(this.bonusCtrl);
+    private getGameResult(): GameResult {
+        let gameScore: number = this.getScore();
+        let bonusesUsed: Bonus[] = this.getBonusesUsed();
         let topWord: Word = this.getHighestWord();
-        let timeBonus = this.getTimeBonus();
-        let unusedBonusBonus = this.getUnnusedBonusBonus(this.bonusCtrl);
+        let timeBonus: number = this.getTimeBonus();
+        let unusedBonusBonus: number = this.getUnnusedBonusBonus();
+        let finalScore: number = gameScore + unusedBonusBonus + timeBonus
 
         return {
             finalScore: finalScore,
+            gameScore: gameScore,
             bonusesUsed: bonusesUsed,
             timeBonus: timeBonus,
             unusedBonusBonus: unusedBonusBonus,
@@ -207,14 +219,12 @@ export class Game {
         }
     }
 
-    getBonusesUsed(bonusCtrl: BonusController) {
-        let used: Bonus[];
-
-        bonusCtrl.getBonuses().filter((bonus: Bonus) => {
-            return bonus.getTimesUsed() > 0;
-        });
-        return used;
+    private getBonusesUsed(): Bonus[] {
+        return this.bonusCtrl.getBonuses().filter((bonus) => {
+            return bonus.getWasUsed();
+        })
     }
+
 
     getTimeBonus(): number {
 
@@ -222,27 +232,31 @@ export class Game {
         return this.timeLeft * 1000;
     }
 
-    getUnnusedBonusBonus(bonusCtrl: BonusController): number {
+    getUnnusedBonusBonus(): number {
         let points = 0;
-        bonusCtrl.getBonuses().forEach((bonus: Bonus) => {
-            points += bonus.getNumberAvailable() * bonus.config.level;
+        this.bonusCtrl.getBonuses().forEach((bonus: Bonus) => {
+            if (bonus.getWasUsed() === false) {
+                points += 10000 * bonus.config.level;
+            }
         });
         return points;
     }
 
     getHighestWord(): Word {
-        return this.getWordList().reduce((curr: Word, next: Word) => {
-            if (curr.getScore() > next.getScore()) {
-                return curr;
-            } else {
-                return next;
-            }
-        }, null);
-    }
+        let wordList = this.getWordList();
 
-    // public endGame() {
-    //     let result: GameResult = this.getGameResult();
-    //     let endingModal = this.modalCtrl.create('GameReportPage', { gameReport: result, game: this });
-    //     endingModal.present();
-    // }
+        if (wordList.length === 0) {
+            return null;
+        } else if (wordList.length === 1) {
+            return wordList[0];
+        } else {
+            return this.getWordList().reduce((curr: Word, next: Word) => {
+                if (curr.getScore() > next.getScore()) {
+                    return curr;
+                } else {
+                    return next;
+                }
+            });
+        }
+    }
 }

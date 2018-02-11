@@ -2,67 +2,57 @@
 
 let LevelConfig = {
     LEVEL_ONE: {
+        level: 1,
         pointsRequired: 0,
         bonuses: []
     },
     LEVEL_TWO: {
+        level: 2,
         pointsRequired: 1000000,
         bonuses: [
             {
                 name: "WordHintBonus",
-                number: 1
+                timeAvailable: 10,
             },
             {
                 name: "TimeBonus",
-                number: 1,
                 time: 10
             }
         ]
     },
     LEVEL_THREE: {
+        level: 3,
         pointsRequired: 2000000,
         bonuses: [
             {
-                level: 3,
                 name: "WordHintBonus",
-                number: 1
+                timeAvailable: 10,
             },
             {
-                level: 3,
                 name: "TimeBonus",
-                number: 1,
                 time: 20
             },
             {
-                level: 3,
                 name: "ExpandWordListBonus",
-                number: 1
             }
         ]
     },
     LEVEL_FOUR: {
+        level: 4,
         pointsRequired: 3000000,
         bonuses: [
             {
-                level: 4,
                 name: "WordHintBonus",
-                number: 1
             },
             {
-                level: 4,
                 name: "TimeBonus",
-                number: 1,
                 "time": 30
             },
             {
-                level: 4,
                 name: "ExpandWordListBonus",
-                number: 1
             },
             {
-                level: 4,
                 name: "WildCardVowelBonus",
-                number: 1
             }
         ]
     }

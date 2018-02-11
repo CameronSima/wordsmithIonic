@@ -4,7 +4,8 @@ let Game = require('../src/utilities/Game.ts');
 let game;
 
 beforeEach(() => {
-    game = new Game.default();
+    console.log("GAME")
+    game = new Game.Game();
 })
 
 describe('Game tests', function() {

@@ -1,12 +1,8 @@
 import { Component } from '@angular/core';
 import { IonicPage, ModalController, NavController } from 'ionic-angular';
 import { ToastController, LoadingController, FabContainer } from 'ionic-angular';
-
-// import { Item } from '../../models/item';
-// import { Items } from '../../providers/providers';
-
 import { Game, GameResult } from '../../utilities/Game';
-import { BonusController } from '../../models/Bonus';
+import { BonusController } from '../../models/Bonus/BonusController';
 import { Word, Letter, Alphabet } from '../../models/wordTypes';
 import { Http } from '@angular/http';
 import Dictionary from '../../utilities/Dictionary';
@@ -18,7 +14,6 @@ import Dictionary from '../../utilities/Dictionary';
 })
 export class ListMasterPage {
   dictionary: Dictionary;
-  bonusController: BonusController;
   alphabet: Alphabet;
   rowLength: number;
   rowsAndCols: string[][];
@@ -30,8 +25,6 @@ export class ListMasterPage {
     public navCtrl: NavController,
     public game: Game,
     public modalCtrl: ModalController) {
-  
-
     this.alphabet = Alphabet.Instance;
     this.rowLength = 4;
     this.loading = null; 
@@ -41,22 +34,23 @@ export class ListMasterPage {
     this.startLoader()
     .then(async () => {
 
-    
+      if (!this.dictionary) {
+        this.dictionary = new Dictionary(this.http);
+        console.log("DICT")
+        console.log(this.dictionary)
+        let result = await this.dictionary.buildDictionary();
+        console.log("RESULT OF DICTIONARY BUILD")
+        console.log(result);
+      };
 
-    if (!this.dictionary) {
-      this.dictionary = new Dictionary(this.http);
-      let result = await this.dictionary.buildDictionary();
-      console.log(result);
-    };
+      this.game.init(this.dictionary, this);
+      this.rowsAndCols = this.getRowsAndCols(this.game.getLetterSet().letters);
 
-    this.game.init(this.dictionary, this.modalCtrl);
-    this.rowsAndCols = this.getRowsAndCols(this.game.getLetterSet().letters);
-
-    this.loading.dismiss();
-    this.game.start((gameResult: GameResult) => {
-      this.endGame(gameResult);
-    });
-  })
+      this.loading.dismiss();
+      this.game.start((gameResult: GameResult) => {
+        this.endGame(gameResult);
+      });
+    })
   }
 
   // TODO: Load dict from db, return true if exists
@@ -69,7 +63,7 @@ export class ListMasterPage {
     endingModal.onDidDismiss(response => {
     
       console.log(response)
-      if (response.type === 'new game') {
+      if (response && response.type === 'new game') {
         this.startGame();
       } else {
         
@@ -112,13 +106,9 @@ export class ListMasterPage {
   }
 
   definitionToast(word: Word) {
-    let definitions: Array<string> = word.getDefinitions();
-
-    // Get random definition
-    let definition: string = definitions[Math.floor(Math.random() * definitions.length)]
-
+    
     let toast = this.toastCtrl.create({
-      message: definition,
+      message: word.getDefinition(),
       duration: 3000,
       position: "top"
     });
@@ -126,8 +116,7 @@ export class ListMasterPage {
   }
 
   useBonus(fab: FabContainer, bonusName: string) {
-
-    this.bonusController.apply(bonusName);
+    this.game.bonusCtrl.apply(bonusName);
     fab.close();
   }
 

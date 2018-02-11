@@ -118,6 +118,12 @@ export class Word {
         return this.definitions;
     }
 
+    // Get one random definition.
+    getDefinition(): string {
+        let definition: string = this.definitions[Math.floor(Math.random() * this.definitions.length)];
+        return definition;
+    }
+
     public getScore() {
 
         if (!this.score) {
@@ -133,13 +139,16 @@ export class Word {
     }
 
     public equals(word: Word): boolean {
-        return word.toString() === this.letters.map((lett) => lett.value.toUpperCase()).join("");
+        let r = word.toString() === this.toString();
+        console.log(r)
+        return r
     }
 
     public toString(): string {
         return this.letters.reduce((acc, curr) => {
-            return acc + curr.value
+            return acc + curr.value;
         }, "")
+
     }
 
     public fromString(str: string): Word {
